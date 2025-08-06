@@ -4,7 +4,7 @@ import axios from 'axios';
  * URL base de la API para las operaciones de usuarios
  * @constant {string}
  */
-const API_URL = 'http://localhost:3000';
+const API_URL = 'http://localhost:3001';
 
 /**
  * Obtiene los headers de autenticación con el token JWT

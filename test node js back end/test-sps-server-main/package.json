@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": " nodemon --inspect=7000 src/index.js"
+    "dev": " nodemon --inspect=7001 src/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
