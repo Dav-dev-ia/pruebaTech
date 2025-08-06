@@ -107,66 +107,6 @@ src/
 4. El token se envía en cada petición a la API para validar la autenticación
 5. Según el rol del usuario, tendrá acceso a diferentes funcionalidades
 
-## Despliegue en Vercel
-
-### Frontend
-
-1. Crear una cuenta en [Vercel](https://vercel.com)
-2. Instalar Vercel CLI:
-```bash
-npm install -g vercel
-```
-
-3. Configurar variables de entorno en Vercel:
-   - Ve a la configuración del proyecto
-   - Añade la variable REACT_APP_API_URL con la URL de tu backend desplegado
-
-4. Desplegar:
-```bash
-vercel
-```
-
-5. Para producción:
-```bash
-vercel --prod
-```
-
-### Backend
-
-1. Asegúrate de tener un archivo `vercel.json` en la raíz del proyecto:
-```json
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "src/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "src/index.js"
-    }
-  ]
-}
-```
-
-2. Configurar variables de entorno en Vercel:
-   - JWT_SECRET
-   - ADMIN_EMAIL
-   - ADMIN_PASSWORD
-
-3. Desplegar:
-```bash
-vercel
-```
-
-4. Para producción:
-```bash
-vercel --prod
-```
-
 ## Solución de Problemas Comunes
 
 ### CORS
@@ -177,12 +117,6 @@ Si hay problemas con la autenticación, verifica:
 - Que el token JWT se esté enviando correctamente en los headers
 - Que el secreto JWT sea el mismo en el backend y en la configuración
 - Que el token no haya expirado
-
-### Despliegue
-Si hay problemas al desplegar:
-- Verifica que todas las variables de entorno estén configuradas
-- Asegúrate de que el archivo vercel.json esté correctamente configurado
-- Revisa los logs de Vercel para identificar errores específicos
 
 ## Subir a GitHub
 
@@ -246,6 +180,9 @@ git push -u origin main
 3. **Protección de rutas**: Asegurar que solo usuarios autenticados pudieran acceder a ciertas páginas.
    - Solución: Crear un componente de ruta protegida que verificara la autenticación.
 
+4. **Visualización de usuarios**: Problemas con la carga y visualización de la lista de usuarios.
+   - Solución: Corregir la lógica de carga inicial y mejorar el manejo de estados de carga.
+
 ### Backend
 1. **Seguridad**: Proteger contra ataques comunes como inyección, XSS y fuerza bruta.
    - Solución: Implementar sanitización de inputs, rate limiting y validación estricta.
@@ -255,11 +192,3 @@ git push -u origin main
 
 3. **Manejo de roles**: Diferenciar entre usuarios administradores y normales.
    - Solución: Crear middleware de verificación de roles para proteger rutas específicas.
-
-## Licencia
-
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
-
-## Contacto
-
-Para cualquier consulta o sugerencia, por favor contacta a través de [tu-email@ejemplo.com](mailto:tu-email@ejemplo.com).

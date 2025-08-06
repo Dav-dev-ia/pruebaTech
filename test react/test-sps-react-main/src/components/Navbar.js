@@ -12,13 +12,39 @@ function Navbar() {
   useEffect(() => {
     // Verificar estado de autenticación
     const checkAuthStatus = () => {
-      const loggedIn = AuthService.isAuthenticated();
-      setIsLoggedIn(loggedIn);
-      
-      if (loggedIn) {
-        const user = AuthService.getCurrentUser();
-        setUserName(user?.name || user?.email || 'Usuario');
-        setIsAdmin(AuthService.isAdmin());
+      try {
+        const loggedIn = AuthService.isAuthenticated();
+        setIsLoggedIn(loggedIn);
+        
+        if (loggedIn) {
+          const user = AuthService.getCurrentUser();
+          if (!user) {
+            // Si no hay usuario pero hay token, posible inconsistencia
+            console.warn('Token presente pero no hay datos de usuario');
+            AuthService.logout();
+            setIsLoggedIn(false);
+            return;
+          }
+          
+          // Extraer solo el nombre de usuario antes del @ si es un correo electrónico
+          let displayName = user?.name || user?.email || 'Usuario';
+          if (displayName.includes('@')) {
+            displayName = displayName.split('@')[0];
+          }
+          setUserName(displayName);
+          setIsAdmin(AuthService.isAdmin());
+        } else {
+          // Limpiar datos si no está autenticado
+          setUserName('');
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error('Error al verificar estado de autenticación:', error);
+        // En caso de error, cerrar sesión para evitar estados inconsistentes
+        AuthService.logout();
+        setIsLoggedIn(false);
+        setUserName('');
+        setIsAdmin(false);
       }
     };
     
@@ -36,13 +62,26 @@ function Navbar() {
   const handleLogout = () => {
     // Mostrar confirmación antes de cerrar sesión
     if (window.confirm('¿Está seguro que desea cerrar sesión?')) {
-      AuthService.logout();
-      
-      // Disparar evento de cambio de autenticación
-      window.dispatchEvent(new Event('authChange'));
-      
-      // Redireccionar a la página de inicio de sesión
-      navigate('/signin');
+      try {
+        // Intentar cerrar sesión
+        AuthService.logout();
+        
+        // Disparar evento de cambio de autenticación
+        window.dispatchEvent(new Event('authChange'));
+        
+        // Redireccionar a la página de inicio de sesión
+        navigate('/signin');
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        // Forzar limpieza en caso de error
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        
+        // Redireccionar a la página de inicio de sesión
+        navigate('/signin');
+      }
     }
   };
 
@@ -56,7 +95,12 @@ function Navbar() {
         <div className="navbar-links">
           <Link to="/" className="navbar-link">Inicio</Link>
           {isLoggedIn && (
-            <Link to="/users" className="navbar-link">Usuarios</Link>
+            <>
+              <Link to="/users" className="navbar-link">Usuarios</Link>
+              {isAdmin && (
+                <Link to="/token-info" className="navbar-link">Info Token</Link>
+              )}
+            </>
           )}
         </div>
         

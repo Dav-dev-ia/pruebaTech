@@ -8,7 +8,8 @@ class User {
         email: "admin@spsgroup.com.br",
         type: "admin",
         password: "1234",
-        createdAt: new Date()
+        createdAt: new Date(),
+        active: true
       }
     ];
     this.nextId = 2;
@@ -16,15 +17,17 @@ class User {
 
   // Obtener todos los usuarios
   getAll() {
-    return this.users.map(user => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
+    return this.users
+      .filter(user => user.active !== false) // Solo retornar usuarios activos
+      .map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
   }
 
   // Obtener usuario por ID
   getById(id) {
-    const user = this.users.find(u => u.id === parseInt(id));
+    const user = this.users.find(u => u.id === parseInt(id) && u.active !== false);
     if (!user) return null;
     
     const { password, ...userWithoutPassword } = user;
@@ -33,13 +36,18 @@ class User {
 
   // Obtener usuario por email
   getByEmail(email) {
-    return this.users.find(u => u.email === email);
+    return this.users.find(u => u.email === email && u.active !== false);
+  }
+
+  // Verificar si un email ya existe en cualquier usuario (activo o inactivo)
+  emailExists(email) {
+    return this.users.some(u => u.email === email);
   }
 
   // Crear nuevo usuario
   create(userData) {
-    // Verificar email único
-    if (this.getByEmail(userData.email)) {
+    // Verificar email único (incluyendo usuarios inactivos)
+    if (this.emailExists(userData.email)) {
       throw new Error('Email already exists');
     }
 
@@ -47,7 +55,8 @@ class User {
       id: this.nextId++,
       ...userData,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      active: true
     };
     
     this.users.push(newUser);
@@ -61,10 +70,13 @@ class User {
     const userIndex = this.users.findIndex(u => u.id === parseInt(id));
     if (userIndex === -1) return null;
 
-    // Verificar email único si se está actualizando
+    // Verificar email único si se está actualizando (incluyendo usuarios inactivos)
     if (userData.email) {
-      const existingUser = this.getByEmail(userData.email);
-      if (existingUser && existingUser.id !== parseInt(id)) {
+      // Buscar cualquier usuario con ese email excepto el actual
+      const emailInUse = this.users.some(u => 
+        u.email === userData.email && u.id !== parseInt(id)
+      );
+      if (emailInUse) {
         throw new Error('Email already exists');
       }
     }
@@ -79,19 +91,22 @@ class User {
     return userWithoutPassword;
   }
 
-  // Eliminar usuario
+  // Marcar usuario como inactivo (soft delete)
   delete(id) {
     const userIndex = this.users.findIndex(u => u.id === parseInt(id));
     if (userIndex === -1) return false;
 
-    this.users.splice(userIndex, 1);
+    // En lugar de eliminar, marcamos como inactivo
+    this.users[userIndex].active = false;
+    this.users[userIndex].updatedAt = new Date();
     return true;
   }
 
   // Validar contraseña
   validatePassword(email, password) {
     const user = this.getByEmail(email);
-    return user && user.password === password;
+    // Solo validar si el usuario existe, está activo y la contraseña coincide
+    return user && user.active !== false && user.password === password;
   }
 }
 

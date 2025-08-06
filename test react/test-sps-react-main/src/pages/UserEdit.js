@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import UserService from '../services/UserService';
 import AuthService from '../services/AuthService';
 import Layout from '../components/Layout';
@@ -34,9 +34,9 @@ function UserEdit() {
       const isUserAdmin = AuthService.isAdmin();
       setIsAdmin(isUserAdmin);
       
-      // Si no es administrador, redirigir a la lista de usuarios
+      // Si no es administrador, redirigir a la página principal con mensaje de error
       if (!isUserAdmin) {
-        navigate('/users');
+        navigate('/', { state: { accessDenied: true } });
         return false;
       }
       return true;

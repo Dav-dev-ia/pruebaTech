@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import SignIn from "./pages/SignIn";
 import Users from "./pages/Users";
 import UserEdit from "./pages/UserEdit";
+import TokenInfo from "./pages/TokenInfo";
 
 /**
  * Componente para rutas que requieren autenticación
@@ -89,6 +90,14 @@ const router = createBrowserRouter([
     element: (
       <AdminRoute>
         <UserEdit />
+      </AdminRoute>
+    ),
+  },
+  {
+    path: "/token-info",
+    element: (
+      <AdminRoute>
+        <TokenInfo />
       </AdminRoute>
     ),
   },

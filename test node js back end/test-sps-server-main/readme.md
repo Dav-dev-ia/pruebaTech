@@ -113,42 +113,6 @@ src/
    - Middleware para verificar roles de usuario
    - Restricción de acciones según el tipo de usuario
 
-## Despliegue en Vercel
-
-1. Asegúrate de tener un archivo `vercel.json` en la raíz del proyecto:
-```json
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "src/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "src/index.js"
-    }
-  ]
-}
-```
-
-2. Configurar variables de entorno en Vercel:
-   - JWT_SECRET
-   - ADMIN_EMAIL
-   - ADMIN_PASSWORD
-
-3. Desplegar:
-```bash
-vercel
-```
-
-4. Para producción:
-```bash
-vercel --prod
-```
-
 ## Subir a GitHub
 
 1. Crear un nuevo repositorio en GitHub
@@ -203,6 +167,9 @@ git push -u origin main
 4. **Seguridad**: Proteger la API contra diversos tipos de ataques.
    - Solución: Implementar rate limiting, sanitización de inputs y validación estricta de datos.
 
+5. **Problemas de conexión con el frontend**: Resolver problemas de CORS y comunicación entre el frontend y backend.
+   - Solución: Configurar correctamente los headers CORS y asegurar que las URLs de API fueran consistentes.
+
 ## Pruebas
 
 Para verificar que la API funciona correctamente:
@@ -221,11 +188,3 @@ curl -X POST http://localhost:3000/api/login -H "Content-Type: application/json"
 ```bash
 curl -X GET http://localhost:3000/api/users -H "Authorization: Bearer TU_TOKEN"
 ```
-
-## Licencia
-
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
-
-## Contacto
-
-Para cualquier consulta o sugerencia, por favor contacta a través de [tu-email@ejemplo.com](mailto:tu-email@ejemplo.com).

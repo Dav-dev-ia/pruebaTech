@@ -11,6 +11,7 @@ function SignIn() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -73,11 +74,38 @@ function SignIn() {
     if (passwordError) validatePassword(newPassword);
   };
   
+  // Función para implementar reintento con retroceso exponencial
+  const retryWithExponentialBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => {
+    let lastError;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error;
+        
+        // Si el error contiene "Demasiados intentos" o es un error de red, reintentamos
+        if (error.message && (error.message.includes('Demasiados intentos') || !error.response)) {
+          const delay = baseDelay * Math.pow(2, attempt);
+          setError(`Reintentando en ${Math.round(delay/1000)} segundos... (intento ${attempt + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          // Para otros errores, no reintentamos
+          throw error;
+        }
+      }
+    }
+    
+    // Si llegamos aquí, es porque agotamos los reintentos
+    throw lastError;
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Limpiar errores previos
+    // Limpiar errores y mensajes previos
     setError('');
+    setSuccess('');
     
     // Validación completa antes de enviar
     const isEmailValid = validateEmail(email);
@@ -90,7 +118,10 @@ function SignIn() {
     setLoading(true);
 
     try {
-      const response = await AuthService.login(email, password);
+      // Usar la función de reintento para el login
+      const response = await retryWithExponentialBackoff(async () => {
+        return await AuthService.login(email, password);
+      });
       
       // Guardar información del usuario según preferencia
       if (rememberMe) {
@@ -103,10 +134,24 @@ function SignIn() {
         localStorage.removeItem('userEmail');
       }
       
-      window.location.href = 'http://localhost:3001/';
+      // Mostrar mensaje de éxito
+      setSuccess(`Inicio de sesión exitoso. Bienvenido, ${response.user.name || response.user.email}`);
+      
+      // Redirigir después de un breve retraso para que el usuario vea el mensaje
+      setTimeout(() => {
+        navigate('/', { state: { justLoggedIn: true } });
+      }, 1500);
     } catch (err) {
       console.error('Error de inicio de sesión:', err);
-      setError(err.message || 'Error al iniciar sesión. Verifique sus credenciales.');
+      
+      // Mensajes de error más descriptivos
+      if (err.message && err.message.includes('Demasiados intentos')) {
+        setError('Has excedido el límite de intentos de inicio de sesión. Por favor, espera unos minutos antes de intentarlo nuevamente.');
+      } else if (!navigator.onLine) {
+        setError('No hay conexión a Internet. Por favor, verifica tu conexión e intenta nuevamente.');
+      } else {
+        setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+      }
     } finally {
       setLoading(false);
     }
@@ -159,6 +204,7 @@ function SignIn() {
           </div>
 
           {error && <div className="error-message">{error}</div>}
+          {success && <div className="success-message">{success}</div>}
 
           <button type="submit" disabled={loading} className="signin-button">
             {loading ? (

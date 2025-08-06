@@ -9,15 +9,25 @@ const rateLimit = require("express-rate-limit");
 // Configurar rate limiter para prevenir ataques de fuerza bruta
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // limitar a 5 intentos por ventana
-  message: { error: "Demasiados intentos de inicio de sesión. Por favor, inténtelo de nuevo más tarde." }
+  max: 20, // Aumentado a 20 intentos por ventana para mejorar la experiencia de usuario
+  message: { error: "Demasiados intentos de inicio de sesión. Por favor, inténtelo de nuevo más tarde." },
+  standardHeaders: true, // Devolver info de límite en los headers `RateLimit-*`
+  legacyHeaders: false, // Deshabilitar los headers `X-RateLimit-*`
+  skipSuccessfulRequests: true // No contar solicitudes exitosas contra el límite
 });
 
 // Configurar rate limiter para las rutas de la API
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // limitar a 100 solicitudes por ventana
-  message: { error: "Demasiadas solicitudes. Por favor, inténtelo de nuevo más tarde." }
+  max: 300, // Aumentado a 300 solicitudes por ventana para mejorar rendimiento
+  message: { error: "Demasiadas solicitudes. Por favor, inténtelo de nuevo más tarde." },
+  standardHeaders: true, // Devolver info de límite en los headers `RateLimit-*`
+  legacyHeaders: false, // Deshabilitar los headers `X-RateLimit-*`
+  skipSuccessfulRequests: true, // No contar solicitudes exitosas contra el límite
+  // Usar un generador de claves simplificado para evitar problemas con IPv6
+  keyGenerator: (req) => {
+    return req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown-ip';
+  }
 });
 
 const routes = Router();

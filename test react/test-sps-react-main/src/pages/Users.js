@@ -12,31 +12,80 @@ function Users() {
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
+  // Referencia para controlar si el componente está montado
+  const isMounted = React.useRef(true);
+  
+  // Función para cargar usuarios con control de montaje
   const fetchUsers = async () => {
+    // No necesitamos esta verificación ya que impide la carga inicial
+    // if (loading) return;
+    
     setLoading(true);
     try {
       const response = await UserService.getUsers();
-      setUsers(response.data || response);
-      setError('');
+      
+      // Verificar si el componente sigue montado antes de actualizar el estado
+      if (isMounted.current) {
+        setUsers(response.data || response);
+        setError('');
+      }
     } catch (err) {
       console.error('Error al obtener usuarios:', err);
-      setError(err.message || 'Error al cargar los usuarios. Intente nuevamente.');
-      setUsers([]);
+      
+      // Verificar si el componente sigue montado antes de actualizar el estado
+      if (isMounted.current) {
+        setError(err.message || 'Error al cargar los usuarios. Intente nuevamente.');
+        setUsers([]);
+      }
     } finally {
-      setLoading(false);
+      // Verificar si el componente sigue montado antes de actualizar el estado
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    // Verificar si el usuario es administrador
-    setIsAdmin(AuthService.isAdmin());
+    // Marcar el componente como montado
+    isMounted.current = true;
     
-    // Cargar lista de usuarios
-    fetchUsers();
+    // Verificar si el usuario está autenticado
+    const isAuthenticated = AuthService.isAuthenticated();
     
-    // Configurar título de la página
-    document.title = 'Gestión de Usuarios';
-  }, []);
+    if (isAuthenticated) {
+      try {
+        // Verificar si el usuario es administrador
+        const admin = AuthService.isAdmin();
+        setIsAdmin(admin);
+        
+        // Cargar lista de usuarios
+        fetchUsers();
+        // Configurar título de la página
+        document.title = 'Gestión de Usuarios';
+      } catch (error) {
+        console.error('Error al verificar permisos:', error);
+        setError('Error al verificar permisos. Por favor, vuelve a iniciar sesión.');
+        setTimeout(() => {
+          AuthService.logout();
+          navigate('/signin', { state: { sessionExpired: true } });
+        }, 2000);
+      }
+    } else {
+      // Redirigir a la página principal si no está autenticado
+      setError('No tienes permisos para acceder a esta página. Serás redirigido a la página de inicio.');
+      setTimeout(() => {
+        navigate('/', { state: { accessDenied: true } });
+      }, 2000);
+    }
+    
+    // Limpiar al desmontar
+    return () => {
+      isMounted.current = false; // Marcar como desmontado
+      setUsers([]);
+      setError('');
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]); // fetchUsers se omite intencionalmente para evitar un bucle infinito
 
   /**
    * Maneja la eliminación de un usuario
@@ -44,19 +93,34 @@ function Users() {
    * @param {string} name - Nombre del usuario para mostrar en la confirmación
    */
   const handleDelete = async (id, name) => {
+    // Verificar permisos de administrador
     if (!isAdmin) {
       setError('No tiene permisos para eliminar usuarios');
       return;
     }
     
+    // Verificar que el ID sea válido
+    if (!id) {
+      setError('ID de usuario inválido');
+      return;
+    }
+    
+    // Confirmar eliminación
     if (window.confirm(`¿Está seguro que desea eliminar al usuario ${name}?`)) {
       try {
+        setLoading(true); // Mostrar indicador de carga
         await UserService.deleteUser(id);
         setError('');
-        fetchUsers();
+        // Mostrar mensaje de éxito temporal
+        setError(`Usuario ${name} eliminado correctamente`);
+        setTimeout(() => setError(''), 3000);
+        // Recargar lista de usuarios
+        await fetchUsers();
       } catch (err) {
         console.error('Error al eliminar usuario:', err);
         setError(err.message || 'Error al eliminar el usuario. Intente nuevamente.');
+      } finally {
+        setLoading(false); // Ocultar indicador de carga
       }
     }
   };
@@ -77,7 +141,14 @@ function Users() {
           )}
         </div>
         
-        {error && <div className="error-message" role="alert">{error}</div>}
+        {error && <div className="error-message" role="alert" style={{
+          backgroundColor: error.includes('eliminado correctamente') ? '#d4edda' : '#f8d7da',
+          color: error.includes('eliminado correctamente') ? '#155724' : '#721c24',
+          padding: '10px 15px',
+          borderRadius: '4px',
+          marginBottom: '20px',
+          textAlign: 'center'
+        }}>{error}</div>}
         
         {loading ? (
           <div className="loading-container">
