@@ -54,7 +54,6 @@ Este proyecto consiste en la implementación de un sistema completo de autentica
 
 Para mejorar la calidad de los comentarios en el código 
 - Redacción clara y profesional del README
-- 
 ## ✅ Estado
 
 ✔️ Autenticación funcional  
@@ -68,6 +67,25 @@ Para mejorar la calidad de los comentarios en el código
 
 - 🔗 [Frontend – SPS React](https://github.com/Dav-dev-ia/pruebaTech/tree/main/test%20react/test-sps-react-main)
 - 🔗 [Backend – SPS Node](https://github.com/Dav-dev-ia/pruebaTech/tree/main/test%20node%20js%20back%20end/test-sps-server-main)
+
+---
+## Observaciones
+
+✔️ contraseña para nuevos ususrios 6 digitos 
+✔️ para usuarios eliminados por admin no pueden volver a crearse cuenta con el correo eliminado  
+✔️ no se puede crear con el mismo correo dos veces
+✔️ hay una seccion dedicada que puedas copiar y ver el token sin consultar el local store
+✔️ se hizo qa de la funcionalidad pero no esta hecho para peticiones masivas
+✔️ solo administradores tiene permiso de usar las funcionalidades del CRUD
+
+## 
+
+✔️ PARTE DEL LOGIN: tiempo estimado 1:30 hrs
+✔️ PARTE DE LA API Y JWT: 1 hr
+✔️ PARTE DE INTEGRACION Y CONEXION: 20 min
+✔️ PARTE QA Y TESTING DE LAS FUNCIONALIDADES: 30 min
+✔️ PARTE DE VERIFICACION DE CUMPLIMIENTO DE LOS REQUERIMIENTOS: 15 min
+✔️ TOTAL APROXIMADO DE FINALIZACION DEL PROYECTO : 210 min  
 
 ---
 
